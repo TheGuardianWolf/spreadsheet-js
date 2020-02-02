@@ -82,10 +82,17 @@ body {
     .cell-row {
         white-space: nowrap;
 
+        &:not(.header-row) {
+            .header-cell {
+                width: 40px;
+            }
+        }
+
         @include clearfix();
     }
 
     .cell-wrapper {
+
         display: inline-block;
     }
 
@@ -97,12 +104,42 @@ body {
             height: 100%;
             width: 100%;
             box-sizing: border-box;
+            border: 0.5px solid lightgray
         }
+    }
+
+    .corner-cell {
+        width: 40px;
+    }
+
+    .header-cell {
+        input {
+            text-align: center;
+            background-color: lightgray;
+        }
+    }
+
+    .active-cell {
+        position: relative;
+        outline: 2px solid darkgreen;
+        z-index: 1;
     }
 }
 
 .loading {
     @include absolute-center();
     font-size: 24px;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.italics {
+    font-style: italic;
+}
+
+.underline {
+    text-decoration: underline;
 }
 

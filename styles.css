@@ -75,6 +75,10 @@ body {
   white-space: nowrap;
 }
 
+.spreadsheet-body .cell-row:not(.header-row) .header-cell {
+  width: 40px;
+}
+
 .spreadsheet-body .cell-row:after {
   content: "";
   display: table;
@@ -94,6 +98,22 @@ body {
   height: 100%;
   width: 100%;
   box-sizing: border-box;
+  border: 0.5px solid lightgray;
+}
+
+.spreadsheet-body .corner-cell {
+  width: 40px;
+}
+
+.spreadsheet-body .header-cell input {
+  text-align: center;
+  background-color: lightgray;
+}
+
+.spreadsheet-body .active-cell {
+  position: relative;
+  outline: 2px solid darkgreen;
+  z-index: 1;
 }
 
 .loading {
@@ -102,4 +122,16 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 24px;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.italics {
+  font-style: italic;
+}
+
+.underline {
+  text-decoration: underline;
 }
