@@ -1,5 +1,11 @@
 'use strict';
 
+const sleep = (milliseconds) => {
+    return new Promise((resolve) => {
+        setTimeout(resolve, milliseconds);
+    });
+};
+
 const numberToAlpha = (number) => {
     number -= 1;
 
@@ -156,6 +162,11 @@ class Spreadsheet {
      * @param {Size} size 
      */
     constructor(size) {
+        this.initialised = false;
+        this.loading = false;
+        this.cleared = true;
+        this.clearing = false;
+        this.loadingScreen = null;
         this.cellContainer = null;
         this.buttonReload = null;
         this.buttonBold = null;
@@ -171,13 +182,29 @@ class Spreadsheet {
         this.prevCellId = 0;
     }
 
+    setLoading(status) {
+        if (status != this.loading) {
+            this.loading = status;
+            if (status) {
+                this.cellContainer.classList.add('not-visible');
+                this.loadingScreen.classList.remove('not-visible');
+            }
+            else {
+                this.loadingScreen.classList.add('not-visible');
+                this.cellContainer.classList.remove('not-visible');
+            }
+        }
+    }
+
     generateCellId() {
         let cellId = this.prevCellId;
         this.prevCellId++;
         return cellId;
     }
 
-    init() {
+    async init() {
+        this.loadingScreen = document.getElementById('spreadsheet-loading');
+
         this.cellContainer = document.getElementById('spreadsheet-content');
 
         this.buttonClear = document.getElementById('spreadsheet-functions-clear');
@@ -204,7 +231,7 @@ class Spreadsheet {
 
         // Put this corner cell in to fill in the top left of the table
         this.cornerCell = new Cell(this.generateCellId(), DOMHelper.createCellElement(true));
-        this.cornerCell.element.classList.add('corner-cell');
+        this.cornerCell.cell.classList.add('corner-cell');
         this.cornerCell.init();
 
         // Fill in the header row
@@ -214,6 +241,7 @@ class Spreadsheet {
             cell.store(numberToAlpha(i));
             this.columnHeaderCells.push(cell);
         }
+        await sleep(1); // Allow browser to catch up
 
         // Generate the rest of the rows
         for (let i = 1; i <= this.size.rows; i++) {
@@ -236,11 +264,18 @@ class Spreadsheet {
                 });
                 this.cells[new Position(i, j)] = cell;
             }
+            await sleep(1); // Allow browser to catch up
         }
+        this.initialised = true;
     }
 
-    redraw() {
-        this.clear();
+    async redraw() {
+        if (!this.initialised || this.loading || this.clearing) {
+            return;
+        }
+
+        this.setLoading(true);
+        await this.clear();
         // Same process as init
 
         // Headers first
@@ -249,6 +284,7 @@ class Spreadsheet {
         headerRow.appendChild(this.cornerCell.element);
         for (let i = 0; i < this.size.cols; i++) {
             headerRow.appendChild(this.columnHeaderCells[i].element);
+            await sleep(1); // browser catch up
         }
         this.cellContainer.appendChild(headerRow);
 
@@ -256,6 +292,7 @@ class Spreadsheet {
         for (let i = 1; i <= this.size.rows; i++) {
             let row = DOMHelper.createRowElement();
             row.appendChild(this.rowHeaderCells[i - 1].element);
+            await sleep(1); // browser catch up
 
             // Generate each column
             for (let j = 1; j <= this.size.cols; j++) {
@@ -263,20 +300,34 @@ class Spreadsheet {
             }
             this.cellContainer.appendChild(row);
         }
+        this.cleared = false;
+        this.setLoading(false);
     }
 
-    clear() {
+    async clear() {
+        if (!this.initialised || this.cleared || this.clearing) {
+            return;
+        }
+        let wasLoading = this.loading; 
+        this.clearing = true;
+        if (!wasLoading) {
+            this.setLoading(true);
+        }
         while (this.cellContainer.children.length > 0) {
             this.cellContainer.removeChild(this.cellContainer.children[this.cellContainer.children.length - 1]);
+            await sleep(1); // browser catch up
         }
+        if (!wasLoading) {
+            this.setLoading(false);
+        }
+        this.clearing = false;
+        this.cleared = true;
     }
 }
 
 const contentLoaded = new Promise((resolve) => {
     if (document.readyState == 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            resolve();
-        });
+        document.addEventListener('DOMContentLoaded', resolve);
     }
     else {
         resolve();
@@ -287,8 +338,8 @@ const main = async () => {
     const spreadsheet = new Spreadsheet(new Size(100, 100)); 
     await contentLoaded;
     console.log('DOM Loaded');
-    spreadsheet.init();
-    spreadsheet.redraw();
+    await spreadsheet.init();
+    await spreadsheet.redraw();
 };
 
 main();

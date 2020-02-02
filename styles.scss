@@ -1,3 +1,13 @@
+$titlebar-height: 30;
+$header-height: 80;
+$head-height: $titlebar-height + $header-height;
+$secondary-color: darkgreen;
+$secondary-text: white;
+$primary-color: #F3F2F1;
+$header-cell-color: #E6E6E6;
+$cell-border-color: #D4D4D4;
+$header-cell-border-color: #999999;
+
 @mixin clearfix {
     &:after {
         content: "";
@@ -28,30 +38,34 @@ html {
 body {
     margin: 0;
     font-family: "Segoe UI", "sans-serif";
+    background-color: $primary-color;
     @include full-screen();
 }
 
 .spreadsheet {
     button {
-        width: 80px;
-        height: 30px;
+        font-family: "Segoe UI", "sans-serif";
+        width: 70px;
+        height: 25px;
+        font-size: 14px;
+        padding: 0 3px;
     }
 
     @include full-screen();
 }
 
+.spreadsheet-titlebar {
+    height: $titlebar-height + px;
+    font-size: 16px;
+    text-align: center;
+    background-color: $secondary-color;
+    color: white;
+    line-height: $titlebar-height + px;
+}
+
 .spreadsheet-header {
-    height: 80px;
-    margin: 10px 5px;
-
-    @media screen and (max-width: 464px) {
-        height: 160px;
-
-        .menu-strip {
-            float: none;
-            margin-left: none;
-        }
-    }
+    height: $header-height + px;
+    background-color: $primary-color;
 
     .menu-strip {
         float: left;
@@ -75,20 +89,15 @@ body {
 }
 
 .spreadsheet-body {
-    margin: 10px 5px;
     position: absolute;
-    top: 80px;
-    bottom: 10px;
-    left: 5px;
-    right: 5px;
-
-    @media screen and (max-width: 464px) {
-        top: 160px;
-    }
+    top: $head-height + px;
+    bottom: 0;
+    left: 0;
+    right: 0;
 
     .spreadsheet-content {
         overflow: scroll;
-        border: 2px solid lightgrey;
+        border: 2px solid $primary-color;
         height: 100%;
     }
 
@@ -105,7 +114,6 @@ body {
     }
 
     .cell-wrapper {
-
         display: inline-block;
     }
 
@@ -117,32 +125,57 @@ body {
             height: 100%;
             width: 100%;
             box-sizing: border-box;
-            border: 0.5px solid lightgray
+            border: 1px solid $cell-border-color
         }
     }
-
-    .corner-cell {
+    
+    .cell-wrapper .corner-cell {
         width: 40px;
+        input {
+            border: 1px solid $header-cell-border-color;
+            border-top: 0;
+            border-left: 0;
+        }
     }
 
     .header-cell {
         input {
             text-align: center;
-            background-color: lightgray;
+            background-color: $header-cell-color;
+            border: 1px solid $header-cell-border-color;
+        }
+    }
+
+    .header-row .header-cell {
+        input {
+            border-top: 0;
+        }
+    }
+
+    .cell-row:not(.header-row) .header-cell {
+        input {
+            border-left: 0;
         }
     }
 
     .active-cell {
         position: relative;
-        outline: 2px solid darkgreen;
+        outline: 2px solid $secondary-color;
         outline-offset: -1px;
         z-index: 1;
     }
 }
 
-.loading {
-    @include absolute-center();
+.spreadsheet-loading {
+    @extend .spreadsheet-body;
     font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    text-align: center;
+    flex-direction: column;
+    background-color: $primary-color;
+    z-index: 90;
 }
 
 .bold {
@@ -157,3 +190,10 @@ body {
     text-decoration: underline;
 }
 
+.not-visible {
+    visibility: hidden;
+}
+
+.no-display {
+    display: none;
+}
