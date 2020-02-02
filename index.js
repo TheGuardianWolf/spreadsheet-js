@@ -37,7 +37,7 @@ class Position {
     }
 
     toString() {
-        return `${this.row}#${this.col}`;
+        return `${numberToAlpha(this.row)}${this.col}`;
     }
 }
 
