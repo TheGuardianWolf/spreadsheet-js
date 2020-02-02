@@ -284,21 +284,21 @@ class Spreadsheet {
         headerRow.appendChild(this.cornerCell.element);
         for (let i = 0; i < this.size.cols; i++) {
             headerRow.appendChild(this.columnHeaderCells[i].element);
-            await sleep(1); // browser catch up
         }
         this.cellContainer.appendChild(headerRow);
+        await sleep(1); // browser catch up
 
         // Put in rest of the rows
         for (let i = 1; i <= this.size.rows; i++) {
             let row = DOMHelper.createRowElement();
             row.appendChild(this.rowHeaderCells[i - 1].element);
-            await sleep(1); // browser catch up
 
             // Generate each column
             for (let j = 1; j <= this.size.cols; j++) {
                 row.appendChild(this.cells[new Position(i, j)].element);
             }
             this.cellContainer.appendChild(row);
+            await sleep(1); // browser catch up
         }
         this.cleared = false;
         this.setLoading(false);
