@@ -1,1 +1,108 @@
+@mixin clearfix {
+    &:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
+
+@mixin full-screen {
+    height: 100%;
+    min-height: 100%;
+    width: 100%;
+    overflow: auto;
+}
+
+@mixin absolute-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+html {
+    margin: 0;
+    @include full-screen();
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", "sans-serif";
+    @include full-screen();
+}
+
+.spreadsheet {
+    button {
+        width: 80px;
+        height: 30px;
+    }
+
+    @include full-screen();
+}
+
+.spreadsheet-header {
+    height: 80px;
+    margin: 10px 5px;
+
+    .menu-strip {
+        float: left;
+        margin-left: 30px;
+
+        &:first-child {
+            margin-left: 0;
+        }
+        
+        .menu-bar-label {
+            font-size: small;
+            padding: 10px 5px 0px 5px;
+        }
+    
+        .menu-bar {
+            padding: 10px 5px;
+        }
+    }
+
+    @include clearfix();
+}
+
+.spreadsheet-body {
+    margin: 10px 5px;
+    position: absolute;
+    top: 90px;
+    bottom: 10px;
+    left: 5px;
+    right: 5px;
+
+    .spreadsheet-content {
+        overflow: scroll;
+        border: 2px solid lightgrey;
+        height: 100%;
+    }
+
+    .cell-row {
+        white-space: nowrap;
+
+        @include clearfix();
+    }
+
+    .cell-wrapper {
+        display: inline-block;
+    }
+
+    .cell {
+        width: 85px;
+        height: 25px;
+
+        input {
+            height: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+}
+
+.loading {
+    @include absolute-center();
+    font-size: 24px;
+}
 

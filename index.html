@@ -6,10 +6,61 @@
     <title>Spreadsheet.JS</title>
     <meta name="description" content="A spreadsheet web application.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
+
+<div id="spreadsheet" class="spreadsheet">
+    <div id="spreadsheet-header" class="spreadsheet-header">
+        
+        <div id="spreadsheet-functions-strip" class="menu-strip">
+            <div id="spreadsheet-functions-bar-label" class="label menu-bar-label">
+                Spreadsheet Functions
+            </div>
+            <div id="spreadsheet-functions-bar" class="menu-bar">
+                <!-- <button type="button" id="spreadsheet-functions-open" class="menu-item menu-item-open">
+                    Open
+                </button>
+                <button type="button" id="spreadsheet-functions-save" class="menu-item menu-item-save">
+                    Save
+                </button> -->
+                <button type="button" id="spreadsheet-functions-clear" class="menu-item menu-item-clear">
+                    Clear
+                </button>
+                <button type="button" id="spreadsheet-functions-reload" class="menu-item menu-item-reload">
+                    Reload
+                </button>
+                <!-- <button type="button" id="spreadsheet-functions-close" class="menu-item menu-item-close">
+                    Close
+                </button> -->
+            </div>
+        </div>
+
+        <div id="spreadsheet-formatting-strip" class="menu-strip">
+            <div id="spreadsheet-formatting-bar-label" class="label menu-bar-label">
+                Cell Formatting
+            </div>
+            <div id="spreadsheet-formatting-bar" class="menu-bar">
+                <button type="button" id="spreadsheet-formatting-bold" class="menu-item menu-item-bold">
+                    Bold
+                </button>
+                <button type="button" id="spreadsheet-formatting-italics" class="menu-item menu-item-italics">
+                    Italics
+                </button>
+                <button type="button" id="spreadsheet-formatting-underline" class="menu-item menu-item-underline">
+                    Underline
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="spreadsheet-body" class="spreadsheet-body">
+        <div id="spreadsheet-content" class="spreadsheet-content">
+            <div class="loading">Loading...</div>
+        </div>
+    </div>
+</div>
+
 </body>
 <script src="index.js" async></script>
 
