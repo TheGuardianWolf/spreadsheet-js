@@ -135,6 +135,7 @@ body {
     .active-cell {
         position: relative;
         outline: 2px solid darkgreen;
+        outline-offset: -1px;
         z-index: 1;
     }
 }
