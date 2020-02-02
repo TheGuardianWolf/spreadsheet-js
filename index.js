@@ -89,6 +89,22 @@ class Cell {
         };
     }
 
+    getAttribute(attr) {
+        return this.attributes[attr];
+    }
+
+    setAttribute(attr, val) {
+        if (val !== this.attributes[attr]) {
+            this.attributes[attr] = val;
+            if (val) {
+                this.inputField.classList.add(attr);
+            }
+            else {
+                this.inputField.classList.remove(attr);
+            }
+        }
+    }
+
     get inputField() {
         return this.element.firstChild.firstChild;
     }
@@ -102,6 +118,10 @@ class Cell {
         if (val != null) {  // Null or undefined check
             this.inputField.setAttribute('value', val == null ? '' : String(val));
         }
+    }
+
+    get cell() {
+        return this.element.firstChild;
     }
 
     addInputFieldEventListener(event, callback) {
@@ -170,11 +190,21 @@ class Spreadsheet {
         });
 
         this.buttonBold = document.getElementById('spreadsheet-formatting-bold');
+        this.buttonBold.addEventListener('click', () => {
+            this.activeCell.setAttribute('bold', !this.activeCell.getAttribute('bold'));
+        });
         this.buttonItalics = document.getElementById('spreadsheet-formatting-italics');
+        this.buttonItalics.addEventListener('click', () => {
+            this.activeCell.setAttribute('italics', !this.activeCell.getAttribute('italics'));
+        });
         this.buttonUnderline = document.getElementById('spreadsheet-formatting-underline');
+        this.buttonUnderline.addEventListener('click', () => {
+            this.activeCell.setAttribute('underline', !this.activeCell.getAttribute('underline'));
+        });
 
         // Put this corner cell in to fill in the top left of the table
         this.cornerCell = new Cell(this.generateCellId(), DOMHelper.createCellElement(true));
+        this.cornerCell.element.classList.add('corner-cell');
         this.cornerCell.init();
 
         // Fill in the header row
@@ -198,12 +228,11 @@ class Spreadsheet {
                 let cell = new Cell(this.generateCellId(), DOMHelper.createCellElement());
                 cell.init();
                 cell.addInputFieldEventListener('focus', (c) => {
-                    this.activeCell = c;
-                });
-                cell.addInputFieldEventListener('blur', (c) => {
-                    if (c === this.activeCell) {
-                        this.activeCell = null;
+                    if (this.activeCell != null) {
+                        this.activeCell.cell.classList.remove('active-cell');
                     }
+                    c.cell.classList.add('active-cell');
+                    this.activeCell = c;
                 });
                 this.cells[new Position(i, j)] = cell;
             }
