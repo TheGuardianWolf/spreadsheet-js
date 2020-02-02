@@ -32,6 +32,16 @@ body {
   margin: 10px 5px;
 }
 
+@media screen and (max-width: 464px) {
+  .spreadsheet-header {
+    height: 160px;
+  }
+  .spreadsheet-header .menu-strip {
+    float: none;
+    margin-left: none;
+  }
+}
+
 .spreadsheet-header .menu-strip {
   float: left;
   margin-left: 30px;
@@ -59,10 +69,16 @@ body {
 .spreadsheet-body {
   margin: 10px 5px;
   position: absolute;
-  top: 90px;
+  top: 80px;
   bottom: 10px;
   left: 5px;
   right: 5px;
+}
+
+@media screen and (max-width: 464px) {
+  .spreadsheet-body {
+    top: 160px;
+  }
 }
 
 .spreadsheet-body .spreadsheet-content {
