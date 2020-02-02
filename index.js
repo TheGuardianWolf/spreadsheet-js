@@ -81,10 +81,12 @@ class Cell {
     
     /**
      * 
+     * @param {Spreadsheet} spreadsheet
      * @param {Number} id 
      * @param {HTMLElement} cellElement 
      */
-    constructor(id, cellElement) {
+    constructor(spreadsheet, id, cellElement) {
+        this.spreadsheet = spreadsheet;
         this.id = id;
         this.element = cellElement;
         this.data = '';
@@ -93,6 +95,8 @@ class Cell {
             'italics': false,
             'underline': false,
         };
+        this.dataType = 'text';
+        this.textChanged = false;
     }
 
     getAttribute(attr) {
@@ -116,13 +120,13 @@ class Cell {
     }
 
     get inputValue() {
-        let value = this.inputField.getAttribute('value');
+        let value = this.inputField.value;
         return value == null ? null : value;  // Null or undefined returns null
     }
 
     set inputValue(val) {
-        if (val != null) {  // Null or undefined check
-            this.inputField.setAttribute('value', val == null ? '' : String(val));
+        if (!(val == null)) {  // Null or undefined check
+            this.inputField.value = String(val);
         }
     }
 
@@ -130,15 +134,15 @@ class Cell {
         return this.element.firstChild;
     }
 
-    addInputFieldEventListener(event, callback) {
-        this.inputField.addEventListener(event, (e) => {
-            callback(this, e);
-        });
-    }
-
     init() {
         this.inputField.addEventListener('blur', () => {
-            this.store(this.inputValue);
+            if (this.textChanged) {
+                this.store(this.inputValue);
+                this.textChanged = false;
+            }
+            else {
+                this.store(this.data);
+            }
         });
 
         this.inputField.addEventListener('keypress', (e) => {
@@ -146,12 +150,46 @@ class Cell {
             if (keyCode === 13) {
                 this.inputField.blur();
             }
+            else {
+                this.textChanged = true;
+            }
+        });
+
+        this.inputField.addEventListener('focus', () => {
+            if (this.dataType === 'equation') {
+                this.inputValue = this.data;
+            }
+
+            let prevActiveCell = this.spreadsheet.activeCell;
+            if (!(prevActiveCell == null)) {
+                prevActiveCell.cell.classList.remove('active-cell');
+            }
+            this.cell.classList.add('active-cell');
+            this.spreadsheet.activeCell = this;
         });
     }
 
     store(data) {
-        this.data = data;
-        this.inputValue = data;
+        let text = String(data);
+        this.dataType = Cell.inferType(text);
+        if (this.dataType === 'text') {
+            this.data = text;
+            this.inputValue = text;
+        }
+        else if (this.dataType === 'equation') {
+            this.data = text;
+            this.inputValue = 'NULL';
+        }
+    }
+
+    static inferType(text) {
+        // console.log(text.slice(0, 1));
+        if (text.slice(0, 1) === '=') {
+            return 'equation';
+        }
+        else {
+            return 'text';
+        }
     }
     
 }
@@ -230,13 +268,13 @@ class Spreadsheet {
         });
 
         // Put this corner cell in to fill in the top left of the table
-        this.cornerCell = new Cell(this.generateCellId(), DOMHelper.createCellElement(true));
+        this.cornerCell = new Cell(this, this.generateCellId(), DOMHelper.createCellElement(true));
         this.cornerCell.cell.classList.add('corner-cell');
         this.cornerCell.init();
 
         // Fill in the header row
         for (let i = 1; i <= this.size.cols; i++) {
-            let cell = new Cell(this.generateCellId(), DOMHelper.createCellElement(true));
+            let cell = new Cell(this, this.generateCellId(), DOMHelper.createCellElement(true));
             cell.init();
             cell.store(numberToAlpha(i));
             this.columnHeaderCells.push(cell);
@@ -246,22 +284,15 @@ class Spreadsheet {
         // Generate the rest of the rows
         for (let i = 1; i <= this.size.rows; i++) {
             // First cell of each row is the row header
-            let cell = new Cell(this.generateCellId(), DOMHelper.createCellElement(true));
+            let cell = new Cell(this, this.generateCellId(), DOMHelper.createCellElement(true));
             cell.init();
             cell.store(String(i));
             this.rowHeaderCells.push(cell);
 
             // Generate each column
             for (let j = 1; j <= this.size.cols; j++) {
-                let cell = new Cell(this.generateCellId(), DOMHelper.createCellElement());
+                let cell = new Cell(this, this.generateCellId(), DOMHelper.createCellElement());
                 cell.init();
-                cell.addInputFieldEventListener('focus', (c) => {
-                    if (this.activeCell != null) {
-                        this.activeCell.cell.classList.remove('active-cell');
-                    }
-                    c.cell.classList.add('active-cell');
-                    this.activeCell = c;
-                });
                 this.cells[new Position(i, j)] = cell;
             }
             await sleep(1); // Allow browser to catch up
