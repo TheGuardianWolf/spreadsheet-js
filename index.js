@@ -90,6 +90,7 @@ class Cell {
         this.id = id;
         this.element = cellElement;
         this.data = '';
+        this.displayValue = '';
         this.attributes = {
             'bold': false,
             'italics': false,
@@ -141,7 +142,7 @@ class Cell {
                 this.textChanged = false;
             }
             else {
-                this.store(this.data);
+                this.inputValue = this.displayValue;
             }
         });
 
@@ -174,12 +175,14 @@ class Cell {
         this.dataType = Cell.inferType(text);
         if (this.dataType === 'text') {
             this.data = text;
-            this.inputValue = text;
+            this.displayValue = text;
         }
         else if (this.dataType === 'equation') {
             this.data = text;
-            this.inputValue = 'NULL';
+            this.displayValue = 'NULL';
         }
+
+        this.inputValue = this.displayValue;
     }
 
     static inferType(text) {
