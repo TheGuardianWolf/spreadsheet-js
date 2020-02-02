@@ -179,10 +179,23 @@ class Cell {
         }
         else if (this.dataType === 'equation') {
             this.data = text;
-            this.displayValue = 'NULL';
+            this.displayValue = String(this.resolveEquation(text.slice(1, text.length)));
         }
 
         this.inputValue = this.displayValue;
+    }
+
+    resolveEquation(equation) {
+        let parts = equation.split('+');
+
+        let sum = 0;
+        if (parts.length > 1) {
+            for (let i = 0; i < parts.length; i++) {
+                sum += Number.parseFloat(this.spreadsheet.cells[parts[i]].data);
+            }
+        }
+
+        return sum;
     }
 
     static inferType(text) {
