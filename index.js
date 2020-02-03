@@ -43,7 +43,7 @@ class Position {
     }
 
     toString() {
-        return `${numberToAlpha(this.row)}${this.col}`;
+        return `${numberToAlpha(this.col)}${this.row}`;
     }
 }
 
@@ -98,6 +98,7 @@ class Cell {
         };
         this.dataType = 'text';
         this.textChanged = false;
+        this.propergatesTo = [];
     }
 
     getAttribute(attr) {
@@ -176,6 +177,8 @@ class Cell {
         if (this.dataType === 'text') {
             this.data = text;
             this.displayValue = text;
+            console.log(this);
+            console.log(`Storing ${this.data}.`);
         }
         else if (this.dataType === 'equation') {
             this.data = text;
@@ -191,6 +194,7 @@ class Cell {
         let sum = 0;
         if (parts.length > 1) {
             for (let i = 0; i < parts.length; i++) {
+                console.log(this.spreadsheet.cells[parts[i]].data);
                 sum += Number.parseFloat(this.spreadsheet.cells[parts[i]].data);
             }
         }
@@ -231,6 +235,7 @@ class Spreadsheet {
         this.rowHeaderCells = [];
         this.columnHeaderCells = [];
         this.cells = {};
+        this.lut = {};
         this.size = new Size(size.rows, size.cols);
         this.activeCell = null;
         this.prevCellId = 0;
@@ -307,9 +312,10 @@ class Spreadsheet {
 
             // Generate each column
             for (let j = 1; j <= this.size.cols; j++) {
+                let position = new Position(i, j);
                 let cell = new Cell(this, this.generateCellId(), DOMHelper.createCellElement());
                 cell.init();
-                this.cells[new Position(i, j)] = cell;
+                this.cells[position] = cell;
             }
             await sleep(1); // Allow browser to catch up
         }
@@ -381,8 +387,10 @@ const contentLoaded = new Promise((resolve) => {
     }
 });
 
+let spreadsheet = null;
+
 const main = async () => {
-    const spreadsheet = new Spreadsheet(new Size(100, 100)); 
+    spreadsheet = new Spreadsheet(new Size(100, 100)); 
     await contentLoaded;
     console.log('DOM Loaded');
     await spreadsheet.init();
