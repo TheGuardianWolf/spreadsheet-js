@@ -177,8 +177,6 @@ class Cell {
         if (this.dataType === 'text') {
             this.data = text;
             this.displayValue = text;
-            console.log(this);
-            console.log(`Storing ${this.data}.`);
         }
         else if (this.dataType === 'equation') {
             this.data = text;
@@ -194,7 +192,6 @@ class Cell {
         let sum = 0;
         if (parts.length > 1) {
             for (let i = 0; i < parts.length; i++) {
-                console.log(this.spreadsheet.cells[parts[i]].data);
                 sum += Number.parseFloat(this.spreadsheet.cells[parts[i]].data);
             }
         }
