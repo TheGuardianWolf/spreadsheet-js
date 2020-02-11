@@ -19,6 +19,157 @@ const numberToAlpha = (number) => {
     return alpha + String.fromCharCode(65 + number - padA * 26);
 };
 
+class MathOperator {
+    /**
+     * 
+     * @param {String} symbol 
+     * @param {Number} preced 
+     * @param {Function} resolver 
+     */
+    constructor(symbol, preced, resolver) {
+        this.symbol = symbol;
+        this.preced = preced;
+        this.resolver = resolver;
+    }
+}
+
+class EquationHelper {
+    constructor() {
+        this.mathOperators = {
+            '+': new MathOperator('+', 1, (a, b) => {
+                return a + b;
+            }),
+            '-': new MathOperator('-', 1, (a, b) => {
+                return a - b;
+            }),
+            '*': new MathOperator('*', 2, (a, b) => {
+                return a * b;
+            }),
+            '/': new MathOperator('/', 1, (a, b) => {
+                return a / b;
+            })
+        };
+        
+        this.recognisedOperators = new Set(Object.keys(this.mathOperators));
+        this.recognisedOperators.add('(');
+        this.recognisedOperators.add(')');  
+    }
+
+    /**
+     * 
+     * @param {String} cellEquation 
+     */
+    cellEquationToArrayEquation(cellEquation) {
+        let arrayEquation = [];
+        let token = '';
+        let equation = cellEquation[0] === '=' ? cellEquation.slice(1) : cellEquation;
+        for (let i = 0; i < equation.length; i++) {
+            if (equation[i] === ' ') {
+                continue; // Ignore whitespace
+            }
+            else if (this.recognisedOperators.has(equation[i])) {
+                if (token.length > 0) {
+                    let maybeNumber = Number.parseFloat(token);
+                    if (!isNaN(maybeNumber)) {
+                        arrayEquation.push(maybeNumber);
+                    }
+                    else {
+                        arrayEquation.push(token);
+                    }
+                    token = '';
+                }
+                arrayEquation.push(equation[i]);
+            }
+            else {
+                token += equation[i];
+            }
+        }
+
+        // In case the last thing is a token
+        if (token.length > 0) {
+            let maybeNumber = Number.parseFloat(token);
+            if (!isNaN(maybeNumber)) {
+                arrayEquation.push(maybeNumber);
+            }
+            else {
+                arrayEquation.push(token);
+            }
+        }
+
+        return arrayEquation;
+    }
+    
+    /**
+     * 
+     * @param {Array} arrayEquation 
+     */
+    infixToPostfix(arrayEquation) {
+        let stack = ['#'];
+        let postfix = [];
+        for (let i = 0; i < arrayEquation.length; i++) {
+            let token = arrayEquation[i];
+            let stackTop = stack[stack.length - 1];
+            if (!(this.recognisedOperators.has(token))) {
+                postfix.push(token);
+            }
+            else {
+                let operator = this.mathOperators[token];
+                let stackTopOperator = this.mathOperators[stack[stack.length - 1]];
+
+                if (token === '(') {
+                    // Paranthesis
+                    stack.push(token);
+                }
+                else if (token === ')') {
+                    while (stack[stack.length - 1] !== '#' && stack[stack.length - 1] !== '(') {
+                        postfix.push(stack.pop());
+                    }
+                    stack.pop();  // Removing '('
+                }
+                else {
+                    if (stackTopOperator === undefined || operator.preced > stackTopOperator.preced) {
+                        stack.push(token);
+                    }
+                    else {
+                        while (stack[stack.length - 1] !== '#' && operator.preced <= this.mathOperators[stackTop].preced) {
+                            postfix.push(stack.pop());
+                        }
+                        stack.push(token);
+                    }
+                }
+            }
+        }
+
+        while (stack[stack.length - 1] !== '#') {
+            postfix.push(stack.pop());
+        }
+
+        return postfix;
+    }
+
+    postfixCalculate(postfixArr) {
+        let stack = [];
+
+        for (let i = 0; i < postfixArr.length; i++) {
+            let token = postfixArr[i];
+
+            if (this.recognisedOperators.has(token)) {
+                let operandB = stack.pop();
+                let operandA = stack.pop();
+                let operator = this.mathOperators[token];
+                let result = operator.resolver(operandA, operandB);
+                stack.push(result);
+            }
+            else {
+                stack.push(token);
+            }
+        }
+
+        return stack.pop();
+    }
+}
+const Equation = new EquationHelper();
+
 class Size {
     /**
      * Constructor
@@ -180,23 +331,36 @@ class Cell {
         }
         else if (this.dataType === 'equation') {
             this.data = text;
-            this.displayValue = String(this.resolveEquation(text.slice(1, text.length)));
+            this.displayValue = String(this.resolveEquation(text));
         }
 
         this.inputValue = this.displayValue;
     }
 
-    resolveEquation(equation) {
-        let parts = equation.split('+');
+    dereference(cellReference) {
+        return Number.parseFloat(spreadsheet.cells[cellReference].displayValue);
+    }
 
-        let sum = 0;
-        if (parts.length > 1) {
-            for (let i = 0; i < parts.length; i++) {
-                sum += Number.parseFloat(this.spreadsheet.cells[parts[i]].data);
+
+    resolveEquation(equation) {
+        let arrayEquation = Equation.cellEquationToArrayEquation(equation.toUpperCase());
+        let postfix = Equation.infixToPostfix(arrayEquation);
+
+        // Resolve the spreadsheet cell references
+        for (let i = 0; i < postfix.length; i++) {
+            let token = postfix[i];
+            // Following needs to be modified to use regex for functions support
+            if (typeof token === 'string' && token.length >= 2) {
+                postfix[i] = this.dereference(token);
+                spreadsheet.cells[token].propergatesTo.push(this.id);
             }
         }
 
-        return sum;
+        // From postfix, calculate and resolve equation
+        let result = Equation.postfixCalculate(postfix);
+        return result;
+
+        // return postfix;
     }
 
     static inferType(text) {
